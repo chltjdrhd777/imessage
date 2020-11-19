@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { Avatar, IconButton } from "@material-ui/core";
 import SearchIcon from "@material-ui/icons/Search";
 import KeyboardHideIcon from "@material-ui/icons/KeyboardHide";
 import SidebarChat from "./SidebarChat";
 import { selectUser } from "redux/mainReducer";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import db from "../../firebase";
 import PopUp from "./PopUp";
+import { addUserToggleAction } from "redux/Slices/appSlice";
 
 function Sidebar() {
   const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+
   const [chats, setChats] = useState([] as any);
 
   useEffect(() => {
@@ -18,6 +21,11 @@ function Sidebar() {
       setChats(snap.docs.map((doc) => ({ id: doc.id, data: doc.data() })))
     );
   }, []);
+  console.log(chats);
+
+  const addUserFunc = () => {
+    dispatch(addUserToggleAction());
+  };
 
   return (
     <SideBarDiv>
@@ -29,7 +37,7 @@ function Sidebar() {
           <input type="text" placeholder="Search" />
         </div>
 
-        <IconButton className="sidebar_header_inputIcon">
+        <IconButton className="sidebar_header_inputIcon" onClick={addUserFunc}>
           <KeyboardHideIcon />
         </IconButton>
 

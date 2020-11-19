@@ -1,6 +1,10 @@
-import React from "react";
-import { Avatar, IconButton } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+import { Avatar } from "@material-ui/core";
 import styled from "styled-components";
+import { useDispatch, useSelector } from "react-redux";
+import { setChat, setDefaultChat } from "redux/Slices/appSlice";
+import { selectUser } from "../../redux/mainReducer";
+import db from "../../firebase";
 
 interface Props {
   id: string;
@@ -8,15 +12,49 @@ interface Props {
 }
 
 function SidebarChat({ id, chatName }: Props) {
+  const [defaultState, setDefaultState] = useState([] as any);
+  useEffect(() => {
+    db.collection("chats")
+      .doc(id)
+      .collection("messages")
+      .onSnapshot((snap) =>
+        setDefaultState(snap.docs.map((doc) => ({ ...doc.data() })))
+      );
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  console.log(defaultState);
+  const dispatch = useDispatch();
+
   return (
-    <SidebarChatDiv>
-      <Avatar />
-      <div className="sidebarChat_info">
-        <h3>{chatName}</h3>
-        <p>whats up</p>
-        <small>timestamp</small>
-      </div>
-    </SidebarChatDiv>
+    <>
+      {defaultState.length === 0 ? null : (
+        <SidebarChatDiv
+          onClick={() => {
+            dispatch(
+              setChat({
+                chatId: id,
+                chatName,
+              })
+            );
+          }}
+        >
+          <Avatar
+            src={defaultState.length === 0 ? "" : defaultState[0].photo}
+          />
+          <div className="sidebarChat_info">
+            <h3>{chatName}</h3>
+            <p>{defaultState.length === 0 ? "" : defaultState[0].message}</p>
+            <small>
+              {defaultState.length === 0
+                ? ""
+                : new Date(defaultState[0].timestamp.toDate()).toLocaleString()}
+            </small>
+          </div>
+        </SidebarChatDiv>
+      )}
+    </>
   );
 }
 
